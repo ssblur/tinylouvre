@@ -1,0 +1,17 @@
+{
+    "BuildMode": {
+        "ExampleMod.CustomTable": "Custom Table"
+    },
+    "Clothes": {
+        "ExampleMod.DarkShirt": "Dark Shirt"
+    },
+    "Emotions": {
+        "ExampleMod.GrassSitting": "Comfy Green Ground"
+    },
+    "Actions": {
+        "TinyLouvre.Paint": "Make a Masterpiece"
+    },
+    "Ui": {
+        "ExampleMod.DarkShirtSpeedOption": "Dark Shirt Speed"
+    }
+}

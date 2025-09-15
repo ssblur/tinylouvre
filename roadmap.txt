@@ -1,0 +1,14 @@
+# be able to draw things and have them be shared
+
+* add a drawing UI
+* add a button to export to bsky
+* * convert the image to base64
+
+> limited palette
+> limit size
+* 10x16
+* 4 colors
+
+* map with a museum
+* painting with a drawing
+* easel where you can draw 
