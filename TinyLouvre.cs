@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -68,9 +69,109 @@ public class TinyLouvre : Mod {
         // group.AddChild(new Paragraph(Anchor.AutoLeft, 1, _ => $"{Localization.Get(LnCategory.Ui, "ExampleMod.DarkShirtSpeedOption")}: {TinyLouvreMod.Options.DarkShirtSpeedIncrease}"));
         group.OnRemovedFromUi += _ => info.SaveOptions(Options);
     }
-
 }
 
 public class LouvreOptions {
 
+}
+
+public record Painting(byte[,] Canvas, int[] Colors)
+{
+    public string ExportPainting()
+    {
+        var array = new List<byte>();
+        foreach (var c in Colors)
+        {
+            array.Add((byte) (c & 255));
+            array.Add((byte) (c >> 8 & 255));
+            array.Add((byte) (c >> 16 & 255));
+        }
+
+        foreach (var b in Canvas.Cast<byte>().Chunk(4))
+        {
+            byte c = 0;
+            for (var i = 0; i < b.Length; i++)
+            {
+                c &= (byte) (b[i] << (i * 2));
+            }
+            array.Add(c);
+        }
+        return Convert.ToBase64String(array.ToArray());
+    }
+}
+
+public class LouvreUtil
+{
+    public static Painting ImportPainting(string base64)
+    {
+        var bytes = Convert.FromBase64String(base64);
+        var canvas = new byte[10,14];
+        var colors = new int[4];
+
+        for (var i = 0; i < 4; i++)
+        {
+            var o = i * 3;
+            colors[i] = bytes[o] + (bytes[o + 1] << 8) + (bytes[o + 1] << 16);
+        }
+
+        for (var i = 12; i < bytes.Length; i++)
+        {
+            var o = (i - 12) * 4;
+            for (var j = 0; j < 4; j++)
+            {
+                var x = (o + j) % 10;
+                var y = (int) Math.Floor((o + j) / 10.0);
+                canvas[x, y] = (byte) ((bytes[i] >> (j * 2)) % 4);
+            }
+        }
+        
+        return new Painting(canvas, colors);
+    }
+
+    public static string ExportPainting(Painting painting)
+    {
+        return painting.ExportPainting();
+    }
+
+    public static void SetCanvasTexture(Painting painting, Texture2D canvas)
+    {
+        var c = painting.Colors[0];
+        var canvasColors = new Color[4];
+        canvasColors[0] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
+        c = painting.Colors[0];
+        canvasColors[1] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
+        c = painting.Colors[0];
+        canvasColors[2] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
+        c = painting.Colors[0];
+        canvasColors[3] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
+        
+        canvas.SetData((from b in painting.Canvas.Cast<byte>() select canvasColors[b]).ToArray());
+    }
+
+    public static Texture2D[] FurnitureTextures(Painting painting, GraphicsDevice device)
+    {
+        var c = painting.Colors[0];
+        var canvasColors = new Color[4];
+        canvasColors[0] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
+        c = painting.Colors[0];
+        canvasColors[1] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
+        c = painting.Colors[0];
+        canvasColors[2] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
+        c = painting.Colors[0];
+        canvasColors[3] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
+
+        var output = (from b in painting.Canvas.Cast<byte>() select canvasColors[b]).ToArray();
+        
+        var down = new Texture2D(device, 16, 16);
+        var left = new Texture2D(device, 16, 16);
+        var right = new Texture2D(device, 16, 16);
+        
+        // TODO: place canvas on textures
+        
+        return [
+            down,
+            left,
+            right
+        ];
+    }
 }

@@ -7,11 +7,11 @@ using TinyLife;
 
 namespace TinyLouvre.UI;
 
-public class PaintingArea : Panel
+public class PaintingArea : Element
 {
     private static byte[,] Paint;
     
-    public PaintingArea(Anchor anchor, Vector2 size) : base(anchor, size, false, false)
+    public PaintingArea(Anchor anchor, Vector2 size) : base(anchor, size)
     {
         Paint ??= new byte[10, 16];
 
