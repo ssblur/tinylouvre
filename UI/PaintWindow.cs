@@ -26,7 +26,7 @@ public class PaintWindow : CoveringGroup
         Buttons = new ColorButton[4];
         for (var i = 0; i < Buttons.Length; i++)
         {
-            Buttons[i] = new ColorButton(MLEM.Ui.Anchor.AutoLeft, new Vector2(8, 8));
+            Buttons[i] = new ColorButton(MLEM.Ui.Anchor.AutoLeft, new Vector2(8, 8), (byte) i);
             buttonGroup.AddChild(Buttons[i], i);
         }
 

@@ -16,6 +16,7 @@ using TinyLife.Actions;
 using TinyLife.Emotions;
 using TinyLife.Mods;
 using TinyLife.Objects;
+using TinyLife.Uis;
 using TinyLife.Utilities;
 using TinyLife.World;
 using TinyLouvre.Actions;
@@ -36,7 +37,7 @@ public class TinyLouvre : Mod {
     public override TextureRegion Icon => uiTextures[new Point(0, 0)];
     public override string IssueTrackerUrl => "https://github.com/ssblur/tinylouvre/issues";
     public override string WebsiteUrl => "https://ssblur.com/mods/tinylouvre.html";
-    public override string TestedVersionRange => "[0.47.8,0.47.11]";
+    public override string TestedVersionRange => "[0.47.8,0.48.0]";
 
     private Dictionary<Point, TextureRegion> uiTextures;
 
@@ -77,7 +78,9 @@ public class LouvreOptions {
 
 public record Painting(byte[,] Canvas, int[] Colors)
 {
-    public string ExportPainting()
+    public const int SIZE_X = 10;
+    public const int SIZE_Y = 14;
+    public string Export()
     {
         var array = new List<byte>();
         foreach (var c in Colors)
@@ -92,11 +95,69 @@ public record Painting(byte[,] Canvas, int[] Colors)
             byte c = 0;
             for (var i = 0; i < b.Length; i++)
             {
-                c &= (byte) (b[i] << (i * 2));
+                c |= (byte) (b[i] << (i * 2));
             }
             array.Add(c);
         }
         return Convert.ToBase64String(array.ToArray());
+    }
+    
+    public Texture2D[] FurnitureTextures(GraphicsDevice device)
+    {
+        var c = Colors[0];
+        var canvasColors = new Color[4];
+        canvasColors[0] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
+        c = Colors[1];
+        canvasColors[1] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
+        c = Colors[2];
+        canvasColors[2] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
+        c = Colors[3];
+        canvasColors[3] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
+
+        var canvas = linearCanvas().Select(b => canvasColors[b]).ToArray();
+        
+        var down = new Texture2D(device, 16, 16);
+        var left = new Texture2D(device, 16, 16);
+        var right = new Texture2D(device, 16, 16);
+        
+        // TODO: place canvas on textures
+        
+        return [
+            down,
+            left,
+            right
+        ];
+    }
+    
+    public void SetCanvasTexture(Texture2D canvas)
+    {
+        var c = Colors[0];
+        var canvasColors = new Color[4];
+        canvasColors[0] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
+        c = Colors[1];
+        canvasColors[1] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
+        c = Colors[2];
+        canvasColors[2] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
+        c = Colors[3];
+        canvasColors[3] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
+
+        var r = linearCanvas().Select(b => canvasColors[b]).ToArray();
+        canvas.SetData(r);
+    }
+
+    private byte[] linearCanvas()
+    {
+        var r = new byte[SIZE_X * SIZE_Y];
+        for (var y = 0; y < SIZE_Y; y++)
+        {
+            var o = y * SIZE_X;
+            for (var x = 0; x < SIZE_X; x++)
+            {
+                r[o + x] = Canvas[x, y];
+            }
+        }
+
+        return r;
     }
 }
 
@@ -126,52 +187,5 @@ public class LouvreUtil
         }
         
         return new Painting(canvas, colors);
-    }
-
-    public static string ExportPainting(Painting painting)
-    {
-        return painting.ExportPainting();
-    }
-
-    public static void SetCanvasTexture(Painting painting, Texture2D canvas)
-    {
-        var c = painting.Colors[0];
-        var canvasColors = new Color[4];
-        canvasColors[0] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
-        c = painting.Colors[0];
-        canvasColors[1] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
-        c = painting.Colors[0];
-        canvasColors[2] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
-        c = painting.Colors[0];
-        canvasColors[3] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
-        
-        canvas.SetData((from b in painting.Canvas.Cast<byte>() select canvasColors[b]).ToArray());
-    }
-
-    public static Texture2D[] FurnitureTextures(Painting painting, GraphicsDevice device)
-    {
-        var c = painting.Colors[0];
-        var canvasColors = new Color[4];
-        canvasColors[0] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
-        c = painting.Colors[0];
-        canvasColors[1] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
-        c = painting.Colors[0];
-        canvasColors[2] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
-        c = painting.Colors[0];
-        canvasColors[3] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
-
-        var output = (from b in painting.Canvas.Cast<byte>() select canvasColors[b]).ToArray();
-        
-        var down = new Texture2D(device, 16, 16);
-        var left = new Texture2D(device, 16, 16);
-        var right = new Texture2D(device, 16, 16);
-        
-        // TODO: place canvas on textures
-        
-        return [
-            down,
-            left,
-            right
-        ];
     }
 }

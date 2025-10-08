@@ -17,15 +17,11 @@ public class ColorPicker : Group
 
 class ColorButton : Button
 {
-    public ColorButton(Anchor anchor, Vector2 size) : base(anchor, size)
+    public ColorButton(Anchor anchor, Vector2 size, byte color) : base(anchor, size)
     {
-    }
-
-    public ColorButton(Anchor anchor, Vector2 size, string text = null, string tooltipText = null) : base(anchor, size, text, tooltipText)
-    {
-    }
-
-    public ColorButton(Anchor anchor, Vector2 size, Paragraph.TextCallback textCallback = null, Paragraph.TextCallback tooltipTextCallback = null) : base(anchor, size, textCallback, tooltipTextCallback)
-    {
+        OnPressed += element =>
+        {
+            PaintingArea.SetColor(color);
+        };
     }
 }
