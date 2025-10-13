@@ -1,7 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using ExtremelySimpleLogger;
 using Microsoft.Xna.Framework;
@@ -25,26 +28,52 @@ using Action = TinyLife.Actions.Action;
 
 namespace TinyLouvre;
 
+// ReSharper disable once ClassNeverInstantiated.Global
 public class TinyLouvre : Mod {
 
     // the logger that we can use to log info about this mod
     public static Logger Logger { get; private set; }
     public static LouvreOptions Options { get; private set; }
+    public static TinyLouvre Instance;
 
     // visual data about this mod
     public override string Name => "Tiny Louvre";
     public override string Description => "Share your creations with everyone!";
-    public override TextureRegion Icon => uiTextures[new Point(0, 0)];
+    public override TextureRegion Icon => UiTextures[new Point(0, 0)];
     public override string IssueTrackerUrl => "https://github.com/ssblur/tinylouvre/issues";
     public override string WebsiteUrl => "https://ssblur.com/mods/tinylouvre.html";
-    public override string TestedVersionRange => "[0.47.8,0.48.0]";
+    public override string TestedVersionRange => "[0.47.8,0.48.2]";
 
-    private Dictionary<Point, TextureRegion> uiTextures;
+    public static Dictionary<Point, TextureRegion> UiTextures;
 
-    public override void Initialize(Logger logger, RawContentManager content, RuntimeTexturePacker texturePacker, ModInfo info) {
+    public override void Initialize(Logger logger, RawContentManager content, RuntimeTexturePacker texturePacker, ModInfo info)
+    {
+        Instance = this;
         Logger = logger;
         Options = info.LoadOptions(() => new LouvreOptions());
-        texturePacker.Add(new UniformTextureAtlas(content.Load<Texture2D>("UiTextures"), 8, 8), r => uiTextures = r, 1, true, true);
+        texturePacker.Add(new UniformTextureAtlas(content.Load<Texture2D>("UiTextures"), 8, 8), r => UiTextures = r, 1, true, true);
+
+        if (!OperatingSystem.IsLinux()) return;
+        Logger.Warn("Cannot confirm if xsel is available, disabling Clipboard functionality.");
+        // This was throwing an exception on another process, which was not being caught.
+        // try
+        // {
+        //     var xsel = new ProcessStartInfo
+        //     {
+        //         WindowStyle = ProcessWindowStyle.Hidden,
+        //         FileName = "xsel",
+        //         RedirectStandardOutput = true,
+        //         RedirectStandardError = true,
+        //         
+        //     };
+        //     var process = Process.Start(xsel);
+        //     process?.WaitForExit();
+        // }
+        // catch
+        // {
+        //     Logger.Warn("xsel does not appear to be available, disabling clipboard functionality.");
+        //     throw;
+        // }
     }
 
     public override void AddGameContent(GameImpl game, ModInfo info) {
@@ -57,23 +86,48 @@ public class TinyLouvre : Mod {
             CanExecute = (actionInfo, _) => actionInfo.GetActionObject<Easel>() != null ? CanExecuteResult.Valid : CanExecuteResult.Hidden,
             Ai = {
                 CanDoRandomly = false,
-                SolvedNeeds = [NeedType.Entertainment],
+                SolvedNeeds = [],
                 PassivePriority = p => 0
             },
-            Texture = uiTextures[new Point(1, 0)]
+            Texture = UiTextures[new Point(1, 0)]
+        });
+        
+        ActionType.Register(new ActionType.TypeSettings("TinyLouvre.Finish", ObjectCategory.Table, typeof(FinishAction)) {
+            CanExecute = (_, _) => CanExecuteResult.Hidden,
+            Ai = {
+                CanDoRandomly = false,
+                SolvedNeeds = [],
+                PassivePriority = p => 0
+            },
+            Texture = UiTextures[new Point(1, 0)]
         });
     }
 
     public override IEnumerable<string> GetCustomFurnitureTextures(ModInfo info) { yield return "CustomFurniture"; }
 
     public override void PopulateOptions(Group group, ModInfo info) {
-        // group.AddChild(new Paragraph(Anchor.AutoLeft, 1, _ => $"{Localization.Get(LnCategory.Ui, "ExampleMod.DarkShirtSpeedOption")}: {TinyLouvreMod.Options.DarkShirtSpeedIncrease}"));
+        group.AddChild(new Paragraph(Anchor.AutoLeft, 100, _ => $"Painting Price: ${Options.PaintingCost}"));
+        group.AddChild(new Slider(Anchor.AutoLeft, new Vector2(100, 8), 5, 1000) {
+            CurrentValue = Options.PaintingCost,
+            OnValueChanged = (_, v) => Options.PaintingCost = (int) v
+        });
+
+        group.AddChild(new VerticalSpace(2));
+        
+        group.AddChild(new Checkbox(Anchor.AutoLeft, new Vector2(100, 8), "Online Mode", Options.ShowOnlineModePrompt)
+        {
+            OnCheckStateChange = (_, value) => Options.OnlineMode = value 
+        });
+        
         group.OnRemovedFromUi += _ => info.SaveOptions(Options);
     }
 }
 
-public class LouvreOptions {
-
+public class LouvreOptions
+{
+    public bool OnlineMode = false;
+    public bool ShowOnlineModePrompt = true; // TODO: show online prompt if true, then disable and save
+    public int PaintingCost = 50;
 }
 
 public record Painting(byte[,] Canvas, int[] Colors)
@@ -90,7 +144,7 @@ public record Painting(byte[,] Canvas, int[] Colors)
             array.Add((byte) (c >> 16 & 255));
         }
 
-        foreach (var b in Canvas.Cast<byte>().Chunk(4))
+        foreach (var b in LinearCanvas().Chunk(4))
         {
             byte c = 0;
             for (var i = 0; i < b.Length; i++)
@@ -104,17 +158,14 @@ public record Painting(byte[,] Canvas, int[] Colors)
     
     public Texture2D[] FurnitureTextures(GraphicsDevice device)
     {
-        var c = Colors[0];
-        var canvasColors = new Color[4];
-        canvasColors[0] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
-        c = Colors[1];
-        canvasColors[1] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
-        c = Colors[2];
-        canvasColors[2] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
-        c = Colors[3];
-        canvasColors[3] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
+        var canvasColors = new[] {
+            Color.FromNonPremultiplied(LouvreUtil.IntToVector4(Colors[0])),
+            Color.FromNonPremultiplied(LouvreUtil.IntToVector4(Colors[1])),
+            Color.FromNonPremultiplied(LouvreUtil.IntToVector4(Colors[2])),
+            Color.FromNonPremultiplied(LouvreUtil.IntToVector4(Colors[3]))
+        };
 
-        var canvas = linearCanvas().Select(b => canvasColors[b]).ToArray();
+        var canvas = LinearCanvas().Select(b => canvasColors[b]).ToArray();
         
         var down = new Texture2D(device, 16, 16);
         var left = new Texture2D(device, 16, 16);
@@ -131,21 +182,18 @@ public record Painting(byte[,] Canvas, int[] Colors)
     
     public void SetCanvasTexture(Texture2D canvas)
     {
-        var c = Colors[0];
-        var canvasColors = new Color[4];
-        canvasColors[0] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
-        c = Colors[1];
-        canvasColors[1] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
-        c = Colors[2];
-        canvasColors[2] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
-        c = Colors[3];
-        canvasColors[3] = Color.FromNonPremultiplied(c & 255, c >> 8 & 255, c >> 16 & 255, 255);
+        var canvasColors = new[] {
+            Color.FromNonPremultiplied(LouvreUtil.IntToVector4(Colors[0])),
+            Color.FromNonPremultiplied(LouvreUtil.IntToVector4(Colors[1])),
+            Color.FromNonPremultiplied(LouvreUtil.IntToVector4(Colors[2])),
+            Color.FromNonPremultiplied(LouvreUtil.IntToVector4(Colors[3]))
+        };
 
-        var r = linearCanvas().Select(b => canvasColors[b]).ToArray();
+        var r = LinearCanvas().Select(b => canvasColors[b]).ToArray();
         canvas.SetData(r);
     }
 
-    private byte[] linearCanvas()
+    private byte[] LinearCanvas()
     {
         var r = new byte[SIZE_X * SIZE_Y];
         for (var y = 0; y < SIZE_Y; y++)
@@ -163,6 +211,8 @@ public record Painting(byte[,] Canvas, int[] Colors)
 
 public class LouvreUtil
 {
+    public static bool XSelAvailable = false;
+    
     public static Painting ImportPainting(string base64)
     {
         var bytes = Convert.FromBase64String(base64);
@@ -172,7 +222,7 @@ public class LouvreUtil
         for (var i = 0; i < 4; i++)
         {
             var o = i * 3;
-            colors[i] = bytes[o] + (bytes[o + 1] << 8) + (bytes[o + 1] << 16);
+            colors[i] = bytes[o] + (bytes[o + 1] << 8) + (bytes[o + 2] << 16);
         }
 
         for (var i = 12; i < bytes.Length; i++)
@@ -187,5 +237,15 @@ public class LouvreUtil
         }
         
         return new Painting(canvas, colors);
+    }
+
+    public static Vector4 IntToVector4(int c)
+    {
+        return new Vector4((c >> 16 & 255) / 255f, (c >> 8 & 255) / 255f, (c & 255) / 255f, 1f);
+    }
+
+    public static int ColorToInt(Color c)
+    {
+        return c.B + (c.G << 8) + (c.R << 16);
     }
 }
