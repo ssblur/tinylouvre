@@ -19,8 +19,8 @@ public class ColorPickerWindow : CoveringGroup
     public ColorPickerWindow(byte color)
     {
         var picker = this;
-        var colorValue = Color.FromNonPremultiplied(LouvreUtil.IntToVector4(PaintingArea.Colors[_color]));
         _color = color;
+        var colorValue = Color.FromNonPremultiplied(LouvreUtil.IntToVector4(PaintingArea.Colors[_color]));
         
         var root = new Panel(Anchor.Center, new Vector2(200, 150));
         AddChild(root);
