@@ -12,6 +12,16 @@
         "TinyLouvre.Paint": "Make a Masterpiece"
     },
     "Ui": {
-        "ExampleMod.DarkShirtSpeedOption": "Dark Shirt Speed"
+        "TinyLouvre.OnlineModeDisclaimer.1": "Tiny Louvre can automatically fetch new paintings from other users on the internet.",
+        "TinyLouvre.OnlineModeDisclaimer.2": "These paintings are not moderated, and their content may not be suitable for all players.",
+        "TinyLouvre.OnlineModeDisclaimer.3": "Would you like to enable Tiny Louvre's Online Mode?",
+        "TinyLouvre.OnlineModeDisclaimer.4": "(This can be changed later in the mod's options menu)",
+        
+        "TinyLouvre.Done": "Done",
+        "TinyLouvre.Share": "Share",
+
+        "TinyLouvre.Options.OnlineMode": "Online Mode:",
+        "TinyLouvre.Options.ATProtoLink": "Online Mode ATProto Feed Link:",
+        "TinyLouvre.Options.PaintingPrice": "Painting Price:"
     }
 }

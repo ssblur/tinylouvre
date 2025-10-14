@@ -81,22 +81,16 @@ public class ColorPickerWindow : CoveringGroup
 
 internal class SaturationValueField : Element
 {
-    private static Texture2D _field;
-    private static float _crosshairScale = 2.0f;
+    private Texture2D _field;
+    private const float CrosshairScale = 2.0f;
     private readonly TextureRegion _crosshair = TinyLouvre.UiTextures[new Point(4, 0)];
     public int Saturation;
     public int Value;
     public SaturationValueField(Anchor anchor, Vector2 size) : base(anchor, size)
     {
-        if (_field == null)
-        {
-            _field = new Texture2D(GameImpl.Instance.GraphicsDevice, 256, 256);
-            var buffer = new Color[65536];
-            for (var x = 0; x < 256; x++)
-                for (var y = 0; y < 256; y++)
-                    buffer[(y << 8) + x] = ColorHelper.FromHsv(1f, x / 255f, y / 255f);
-            _field.SetData(buffer);
-        }
+        _field = new Texture2D(GameImpl.Instance.GraphicsDevice, 256, 256);
+        SetHue(255);
+        
         OnPressed += element =>
         {
             var diff = element.Controls.Input.MousePosition.ToVector2() - element.DisplayArea.Location;
@@ -116,13 +110,13 @@ internal class SaturationValueField : Element
         base.Draw(time, batch, alpha, context);
         batch.Draw(_field, DisplayArea, Color.White);
         
-        var crosshairY = (Value / 255f) * DisplayArea.Height - (5f * _crosshairScale);
-        var crosshairX = (Saturation / 255f) * DisplayArea.Height - (5f * _crosshairScale);
-        var crosshairRect = new RectangleF(DisplayArea.X + crosshairX, DisplayArea.Y + crosshairY, 16 * _crosshairScale, 16 * _crosshairScale);
+        var crosshairY = (Value / 255f) * DisplayArea.Height - (5f * CrosshairScale);
+        var crosshairX = (Saturation / 255f) * DisplayArea.Height - (5f * CrosshairScale);
+        var crosshairRect = new RectangleF(DisplayArea.X + crosshairX, DisplayArea.Y + crosshairY, 16 * CrosshairScale, 16 * CrosshairScale);
         batch.Draw(_crosshair, crosshairRect, Color.White);
     }
 
-    private Color[] _buffer = new Color[65536];
+    private static Color[] _buffer = new Color[65536];
     public void SetHue(int hue)
     {
         for (var x = 0; x < 256; x++)
@@ -135,7 +129,7 @@ internal class SaturationValueField : Element
 internal class HueSlider : Element
 {
     private static Texture2D _hueSlider;
-    private static float _sliderScale = 2.0f;
+    private const float SliderScale = 2.0f;
     private readonly TextureRegion _sliderBar = TinyLouvre.UiTextures[new Point(5, 0)];
     public int Value;
     public HueSlider(Anchor anchor, Vector2 size) : base(anchor, size)
@@ -169,8 +163,8 @@ internal class HueSlider : Element
         base.Draw(time, batch, alpha, context);
         batch.Draw(_hueSlider, DisplayArea, Color.White);
 
-        var sliderY = (Value / 255f) * DisplayArea.Height - (2 * _sliderScale);
-        var sliderRect = new RectangleF(DisplayArea.X, DisplayArea.Y + sliderY, DisplayArea.Width, 16 * _sliderScale);
+        var sliderY = (Value / 255f) * DisplayArea.Height - (2 * SliderScale);
+        var sliderRect = new RectangleF(DisplayArea.X, DisplayArea.Y + sliderY, DisplayArea.Width, 16 * SliderScale);
         batch.Draw(_sliderBar, sliderRect, Color.White);
     }
 }

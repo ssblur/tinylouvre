@@ -4,8 +4,11 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
+using System.Text.RegularExpressions;
 using ExtremelySimpleLogger;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -14,6 +17,7 @@ using MLEM.Data.Content;
 using MLEM.Textures;
 using MLEM.Ui;
 using MLEM.Ui.Elements;
+using Newtonsoft.Json;
 using TinyLife;
 using TinyLife.Actions;
 using TinyLife.Emotions;
@@ -24,7 +28,10 @@ using TinyLife.Utilities;
 using TinyLife.World;
 using TinyLouvre.Actions;
 using TinyLouvre.Objects;
+using TinyLouvre.UI;
 using Action = TinyLife.Actions.Action;
+using Group = MLEM.Ui.Elements.Group;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace TinyLouvre;
 
@@ -52,7 +59,8 @@ public class TinyLouvre : Mod {
         Logger = logger;
         Options = info.LoadOptions(() => new LouvreOptions());
         texturePacker.Add(new UniformTextureAtlas(content.Load<Texture2D>("UiTextures"), 8, 8), r => UiTextures = r, 1, true, true);
-
+        
+        
         if (!OperatingSystem.IsLinux()) return;
         Logger.Warn("Cannot confirm if xsel is available, disabling Clipboard functionality.");
         // This was throwing an exception on another process, which was not being caught.
@@ -101,12 +109,20 @@ public class TinyLouvre : Mod {
             },
             Texture = UiTextures[new Point(1, 0)]
         });
+        
+        OnlineMode.Update();
     }
 
     public override IEnumerable<string> GetCustomFurnitureTextures(ModInfo info) { yield return "CustomFurniture"; }
 
-    public override void PopulateOptions(Group group, ModInfo info) {
-        group.AddChild(new Paragraph(Anchor.AutoLeft, 100, _ => $"Painting Price: ${Options.PaintingCost}"));
+    public override void PopulateOptions(Group group, ModInfo info)
+    {
+        var oldOnlineMode = Options.OnlineMode;
+        group.AddChild(new Paragraph(
+            Anchor.AutoLeft, 
+            100, 
+            _ => $"{Localization.Get(LnCategory.Ui, "TinyLouvre.Options.OnlineMode")} ${Options.PaintingCost}"
+        ));
         group.AddChild(new Slider(Anchor.AutoLeft, new Vector2(100, 8), 5, 1000) {
             CurrentValue = Options.PaintingCost,
             OnValueChanged = (_, v) => Options.PaintingCost = (int) v
@@ -114,12 +130,31 @@ public class TinyLouvre : Mod {
 
         group.AddChild(new VerticalSpace(2));
         
-        group.AddChild(new Checkbox(Anchor.AutoLeft, new Vector2(100, 8), "Online Mode", Options.ShowOnlineModePrompt)
+        group.AddChild(new Checkbox(
+            Anchor.AutoLeft, 
+            new Vector2(100, 8), 
+            Localization.Get(LnCategory.Ui, "TinyLouvre.Options.OnlineMode"), 
+            Options.OnlineMode
+        )
         {
             OnCheckStateChange = (_, value) => Options.OnlineMode = value 
         });
         
-        group.OnRemovedFromUi += _ => info.SaveOptions(Options);
+        group.AddChild(new VerticalSpace(2));
+
+        group.AddChild(new Paragraph(Anchor.AutoLeft, 100, _ => "Online Mode ATProto Feed Link:"));
+        group.AddChild(new TextField(Anchor.AutoLeft, new Vector2(100, 12), null, null, Options.OnlineModeAtprotoFeed)
+        {
+            OnTextChange = (_, text) => Options.OnlineModeAtprotoFeed = text,
+        });
+        
+        group.OnRemovedFromUi += _ =>
+        {
+            info.SaveOptions(Options);
+            
+            // If online mode was just enabled, fetch new paintings.
+            if(Options.OnlineMode != oldOnlineMode) OnlineMode.Update();
+        };
     }
 }
 
@@ -128,6 +163,11 @@ public class LouvreOptions
     public bool OnlineMode = false;
     public bool ShowOnlineModePrompt = true; // TODO: show online prompt if true, then disable and save
     public int PaintingCost = 50;
+
+    // An ATProto / BlueSky feed link. Will be access unauthenticated to search for valid paintings in posts.
+    // Only does anything if Online Mode is enabled.
+    public string OnlineModeAtprotoFeed =
+        "https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=did:plc:o3fftrm6ifwqrg2ecefine2h";
 }
 
 public record Painting(byte[,] Canvas, int[] Colors)
@@ -247,5 +287,64 @@ public class LouvreUtil
     public static int ColorToInt(Color c)
     {
         return c.B + (c.G << 8) + (c.R << 16);
+    }
+}
+
+public record PaintingWithMetadata(Painting painting, string author, string handle, string link);
+
+public class OnlineMode
+{
+    public static PaintingWithMetadata[] RecentPaintings = [];
+
+    record Record(string createdAt, string text);
+    record Author(string handle, string displayName);
+    record Post(Author author, Record record, string uri);
+
+    record FeedItem(Post post);
+    record Feed(FeedItem[] feed);
+
+    public static async void Update()
+    {
+        if (!TinyLouvre.Options.OnlineMode)
+        {
+            TinyLouvre.Logger.Info("Online Mode disabled, not fetching new paintings.");
+            return;
+        }
+
+        var client = new HttpClient(new HttpClientHandler
+            { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate });
+        var request = await client.GetAsync(TinyLouvre.Options.OnlineModeAtprotoFeed);
+        if (!request.IsSuccessStatusCode)
+        {
+            TinyLouvre.Logger.Warn("There was an error while fetching new paintings:");
+            TinyLouvre.Logger.Warn($"{request.StatusCode} {request.ReasonPhrase}");
+            return;
+        }
+
+        var feed = JsonSerializer.Deserialize<Feed>(await request.Content.ReadAsStringAsync());
+        if(feed == null)
+        {
+            TinyLouvre.Logger.Warn("There was an error while fetching new paintings:");
+            TinyLouvre.Logger.Warn("Feed is invalid!");
+            return;
+        }
+
+        var recentPaintings = new List<PaintingWithMetadata>();
+        var pattern = new Regex(@"tlv\.(.*?)\.");
+        foreach (var item in feed.feed)
+        {
+            var post = item.post.record.text;
+            var groups = pattern.Match(post).Groups;
+            if (groups.Count < 2) continue;
+            var painting = LouvreUtil.ImportPainting(groups[1].Value);
+            
+            var authorName = item.post.author.displayName;
+            var authorHandle = item.post.author.handle;
+            var uri = item.post.uri;
+            
+            recentPaintings.Add(new PaintingWithMetadata(painting, authorName, authorHandle, uri));
+        }
+
+        RecentPaintings = recentPaintings.ToArray();
     }
 }

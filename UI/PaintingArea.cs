@@ -18,9 +18,11 @@ public class PaintingArea : Element
     
     public PaintingArea(Anchor anchor, Vector2 size) : base(anchor, size)
     {
+        
         // _painting ??= LouvreUtil.ImportPainting("////AAAAAAAA/wAAAAAAAACAIAAAAAgAAqoKAAAAAAAAAAAAAAAAAAAAAAAAAAA=");
         // Colors = _painting.Colors;
         _painting ??= new Painting(new byte[Painting.SIZE_X, Painting.SIZE_Y], Colors);
+
         _canvasTexture ??= new Texture2D(GameImpl.Instance.GraphicsDevice, Painting.SIZE_X, Painting.SIZE_Y);
         _painting.SetCanvasTexture(_canvasTexture);
 
