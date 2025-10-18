@@ -23,6 +23,7 @@ using TinyLife.Actions;
 using TinyLife.Emotions;
 using TinyLife.Mods;
 using TinyLife.Objects;
+using TinyLife.Tools;
 using TinyLife.Uis;
 using TinyLife.Utilities;
 using TinyLife.World;
@@ -49,7 +50,7 @@ public class TinyLouvre : Mod {
     public override TextureRegion Icon => UiTextures[new Point(0, 0)];
     public override string IssueTrackerUrl => "https://github.com/ssblur/tinylouvre/issues";
     public override string WebsiteUrl => "https://ssblur.com/mods/tinylouvre.html";
-    public override string TestedVersionRange => "[0.47.8,0.48.2]";
+    public override string TestedVersionRange => "[0.47.8,0.48.3]";
 
     public static Dictionary<Point, TextureRegion> UiTextures;
 
@@ -84,12 +85,30 @@ public class TinyLouvre : Mod {
         // }
     }
 
+
+    public FurnitureType Easel;
+    public FurnitureType ArtPiece;
+    public ActionType Finish;
     public override void AddGameContent(GameImpl game, ModInfo info) {
-        FurnitureType.Register(new FurnitureType.TypeSettings("TinyLouvre.Easel", new Point(1, 1), ObjectCategory.Table, 150, ColorScheme.SimpleWood) {
+        Easel = FurnitureType.Register(new FurnitureType.TypeSettings("TinyLouvre.Easel", new Point(1, 1), ObjectCategory.Table, 150, ColorScheme.White, ColorScheme.White  , ColorScheme.White) {
             ConstructedType = typeof(Easel),
             Icon = Icon,
-            ObjectSpots = ObjectSpot.TableSpots(new Point(1, 1)).ToArray()
+            Tab = FurnitureTool.Tab.Other,
         });
+
+        var artPieceCategory = ObjectCategory.WallHanging | ObjectCategory.NonBuyable;
+        ArtPiece = FurnitureType.Register(
+            new FurnitureType.TypeSettings(
+                "TinyLouvre.Painting", 
+                new Point(1, 1), 
+                artPieceCategory, 
+                -1, 
+                ColorScheme.White
+            ) {
+            ConstructedType = typeof(ArtPiece),
+            Icon = Icon,
+        });
+        
         ActionType.Register(new ActionType.TypeSettings("TinyLouvre.Paint", ObjectCategory.Table, typeof(PaintAction)) {
             CanExecute = (actionInfo, _) => actionInfo.GetActionObject<Easel>() != null ? CanExecuteResult.Valid : CanExecuteResult.Hidden,
             Ai = {
@@ -100,14 +119,24 @@ public class TinyLouvre : Mod {
             Texture = UiTextures[new Point(1, 0)]
         });
         
-        ActionType.Register(new ActionType.TypeSettings("TinyLouvre.Finish", ObjectCategory.Table, typeof(FinishAction)) {
+        Finish = ActionType.Register(new ActionType.TypeSettings("TinyLouvre.Finish", ObjectCategory.Table, typeof(FinishAction)) {
             CanExecute = (_, _) => CanExecuteResult.Hidden,
             Ai = {
                 CanDoRandomly = false,
                 SolvedNeeds = [],
                 PassivePriority = p => 0
             },
-            Texture = UiTextures[new Point(1, 0)]
+            Texture = UiTextures[new Point(1, 0)],
+        });
+        
+        ActionType.Register(new ActionType.TypeSettings("TinyLouvre.View", artPieceCategory, typeof(ViewAction)) {
+            CanExecute = (actionInfo, _) => actionInfo.GetActionObject<ArtPiece>() != null ? CanExecuteResult.Valid : CanExecuteResult.Hidden,
+            Ai = {
+                CanDoRandomly = false,
+                SolvedNeeds = [],
+                PassivePriority = p => 0
+            },
+            Texture = UiTextures[new Point(0, 0)]
         });
         
         OnlineMode.Update();
@@ -121,7 +150,7 @@ public class TinyLouvre : Mod {
         group.AddChild(new Paragraph(
             Anchor.AutoLeft, 
             100, 
-            _ => $"{Localization.Get(LnCategory.Ui, "TinyLouvre.Options.OnlineMode")} ${Options.PaintingCost}"
+            _ => $"{Localization.Get(LnCategory.Ui, "TinyLouvre.Options.PaintingCost")} ${Options.PaintingCost}"
         ));
         group.AddChild(new Slider(Anchor.AutoLeft, new Vector2(100, 8), 5, 1000) {
             CurrentValue = Options.PaintingCost,
@@ -196,8 +225,9 @@ public record Painting(byte[,] Canvas, int[] Colors)
         return Convert.ToBase64String(array.ToArray());
     }
     
-    public Texture2D[] FurnitureTextures(GraphicsDevice device)
+    public Texture2D[] FurnitureTextures()
     {
+        var device = GameImpl.Instance.GraphicsDevice;
         var canvasColors = new[] {
             Color.FromNonPremultiplied(LouvreUtil.IntToVector4(Colors[0])),
             Color.FromNonPremultiplied(LouvreUtil.IntToVector4(Colors[1])),
@@ -288,6 +318,14 @@ public class LouvreUtil
     {
         return c.B + (c.G << 8) + (c.R << 16);
     }
+
+    public static string GarbageDataForFun()
+    {
+        var random = new Random();
+        var bytes = new byte[47];
+        random.NextBytes(bytes);
+        return Convert.ToBase64String(bytes);
+    }
 }
 
 public record PaintingWithMetadata(Painting painting, string author, string handle, string link);
@@ -333,16 +371,24 @@ public class OnlineMode
         var pattern = new Regex(@"tlv\.(.*?)\.");
         foreach (var item in feed.feed)
         {
-            var post = item.post.record.text;
-            var groups = pattern.Match(post).Groups;
-            if (groups.Count < 2) continue;
-            var painting = LouvreUtil.ImportPainting(groups[1].Value);
-            
-            var authorName = item.post.author.displayName;
-            var authorHandle = item.post.author.handle;
-            var uri = item.post.uri;
-            
-            recentPaintings.Add(new PaintingWithMetadata(painting, authorName, authorHandle, uri));
+            try
+            {
+                var post = item.post.record.text;
+                var groups = pattern.Match(post).Groups;
+                if (groups.Count < 2) continue;
+                var painting = LouvreUtil.ImportPainting(groups[1].Value);
+
+                var authorName = item.post.author.displayName;
+                var authorHandle = item.post.author.handle;
+                var uri = item.post.uri;
+
+                recentPaintings.Add(new PaintingWithMetadata(painting, authorName, authorHandle, uri));
+            }
+            catch (Exception e)
+            {
+                TinyLouvre.Logger.Warn("There was an error processing a post.");
+                TinyLouvre.Logger.Warn(e);
+            }
         }
 
         RecentPaintings = recentPaintings.ToArray();

@@ -1,18 +1,37 @@
 TinyLouvre.EaselUp
 loc 0 0 32 32
-piv 16 20
+piv 16 24
+off 0 64
 
 TinyLouvre.EaselDown
 loc 0 0 32 32
-piv 16 20
+piv 16 24
 off 0 32
 
 TinyLouvre.EaselLeft
 loc 0 0 32 32
-piv 16 20
-off 0 64
+piv 16 24
+off 0 0
 
 TinyLouvre.EaselRight
 loc 0 0 32 32
-piv 16 20
+piv 16 24
 off 0 96
+
+TinyLouvre.PaintingDown
+loc 0 0 32 32
+piv 8 32
+off 0 160
+
+TinyLouvre.PaintingRight
+loc 0 0 32 32
+piv 24 32
+off 0 128
+
+TinyLouvre.PaintingUp
+loc 0 0 32 32
+off 0 192
+
+TinyLouvre.PaintingLeft
+loc 0 0 32 32
+off 0 192

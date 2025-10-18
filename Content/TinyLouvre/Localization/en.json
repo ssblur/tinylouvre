@@ -1,23 +1,25 @@
 {
     "BuildMode": {
-        "ExampleMod.CustomTable": "Custom Table"
+        "TinyLouvre.Easel": "Easel",
+        "TinyLouvre.Painting": "Painting"
     },
-    "Clothes": {
-        "ExampleMod.DarkShirt": "Dark Shirt"
-    },
+    "Clothes": {},
     "Emotions": {
-        "ExampleMod.GrassSitting": "Comfy Green Ground"
+        "TinyLouvre.Moved": "Moved by Art"
     },
     "Actions": {
-        "TinyLouvre.Paint": "Make a Masterpiece"
+        "TinyLouvre.Paint": "Make a Masterpiece",
+        "TinyLouvre.Finish": "Finish Your Masterpiece",
+        "TinyLouvre.View": "Look at Painting"
     },
     "Ui": {
         "TinyLouvre.OnlineModeDisclaimer.1": "Tiny Louvre can automatically fetch new paintings from other users on the internet.",
         "TinyLouvre.OnlineModeDisclaimer.2": "These paintings are not moderated, and their content may not be suitable for all players.",
         "TinyLouvre.OnlineModeDisclaimer.3": "Would you like to enable Tiny Louvre's Online Mode?",
         "TinyLouvre.OnlineModeDisclaimer.4": "(This can be changed later in the mod's options menu)",
-        
+
         "TinyLouvre.Done": "Done",
+        "TinyLouvre.Finish": "Finish (${0})",
         "TinyLouvre.Share": "Share",
 
         "TinyLouvre.Options.OnlineMode": "Online Mode:",
