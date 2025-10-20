@@ -67,7 +67,7 @@ public class ArtPiece(Guid id, FurnitureType type, int[] colors, Map map, Vector
             batch,
             new Vector2(drawPos.X - ox, drawPos.Y - oy),
             tex,
-            Color.White,
+            overrideColor ?? Color.White,
             new Vector2(drawScale),
             TinyLouvre.Instance.MuseumArtPiece.GetSize(rotation),
             items,
