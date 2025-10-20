@@ -11,7 +11,7 @@
     "Actions": {
         "TinyLouvre.Paint": "Make a Masterpiece",
         "TinyLouvre.Finish": "Finish Your Masterpiece",
-        "TinyLouvre.View": "Look at Painting"
+        "TinyLouvre.View": "Look Closer"
     },
     "Ui": {
         "TinyLouvre.OnlineModeDisclaimer.1": "Tiny Louvre can automatically fetch new paintings from other users on the internet.",
