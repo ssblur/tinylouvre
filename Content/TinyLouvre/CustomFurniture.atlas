@@ -6,12 +6,12 @@ off 0 64
 TinyLouvre.EaselDown
 loc 0 0 32 32
 piv 16 24
-off 0 32
+off 0 0
 
 TinyLouvre.EaselLeft
 loc 0 0 32 32
 piv 16 24
-off 0 0
+off 0 32
 
 TinyLouvre.EaselRight
 loc 0 0 32 32
