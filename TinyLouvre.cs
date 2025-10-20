@@ -152,7 +152,7 @@ public class TinyLouvre : Mod {
                 {
                     var i = 0;
                     if (furniture is MuseumArtPiece art) i = art.MuseumIndex;
-                    return $"Museum Art Piece {i}";
+                    return Localization.Get(LnCategory.BuildMode, "TinyLouvre.MuseumPainting", i);
                 })
             });
         
