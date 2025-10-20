@@ -2,6 +2,7 @@ using System;
 using Microsoft.Xna.Framework;
 using MLEM.Maths;
 using MLEM.Misc;
+using MLEM.Textures;
 using MLEM.Ui;
 using MLEM.Ui.Elements;
 using TextCopy;
@@ -69,3 +70,21 @@ class ClearButton : Button
 
 class BuyButton(Anchor anchor, Vector2 size) : Button(anchor, size,
     _ => Localization.Get(LnCategory.Ui, "TinyLouvre.Buy", TinyLouvre.Options.PaintingCost));
+    
+class WhiteButton: Button
+{
+    public WhiteButton(Anchor anchor, Vector2 size) : base(anchor, size)
+    {
+        var region = TinyLouvre.UiTextures[new Point(0, 1)];
+        Texture = new NinePatch(region, MLEM.Maths.Padding.Empty);
+    }
+}
+
+class WhitePanel : Panel
+{
+    public WhitePanel(Anchor anchor, Vector2 size, bool setHeightBasedOnChildren = false, bool scrollOverflow = false, bool autoHideScrollbar = true) : base(anchor, size, setHeightBasedOnChildren, scrollOverflow, autoHideScrollbar)
+    {
+        var region = TinyLouvre.UiTextures[new Point(0, 1)];
+        Texture = new NinePatch(region, MLEM.Maths.Padding.Empty);
+    }
+}

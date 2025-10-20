@@ -25,7 +25,7 @@ public class ColorPicker : Group
     }
 }
 
-internal class ColorButton : Button
+internal class ColorButton : WhiteButton
 {
     private readonly byte _color;
     public ColorButton(Anchor anchor, Vector2 size, byte color) : base(anchor, size)

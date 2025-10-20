@@ -22,6 +22,8 @@ public class ColorPickerWindow : CoveringGroup
         var color1 = color;
         var colorValue = Color.FromNonPremultiplied(LouvreUtil.IntToVector4(PaintingArea.Colors[color1]));
         
+        PaintingArea.SetColor(color);
+        
         var root = new Panel(Anchor.Center, new Vector2(200, 150));
         AddChild(root);
 
@@ -32,13 +34,13 @@ public class ColorPickerWindow : CoveringGroup
 
         
         group.AddChild(new Paragraph(Anchor.AutoLeft, 40, "Old:"));
-        group.AddChild(new Panel(Anchor.AutoLeft, new Vector2(20, 20))
+        group.AddChild(new WhitePanel(Anchor.AutoLeft, new Vector2(20, 20))
         {
             DrawColor = colorValue
         });
         
         group.AddChild(new Paragraph(Anchor.AutoLeft, 40, "New:"));
-        var newColor = new Panel(Anchor.AutoLeft, new Vector2(20, 20))
+        var newColor = new WhitePanel(Anchor.AutoLeft, new Vector2(20, 20))
         {
             DrawColor = colorValue
         };
