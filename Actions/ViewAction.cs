@@ -25,12 +25,26 @@ public class ViewAction(ActionType type, ActionInfo info) : MultiAction(type, in
     {
         base.AndThenInitialize();
         var painting = Info.GetActionObject<ArtPiece>();
-        if (painting == null) return;
+        if (painting != null)
+        {
+            var root = GameImpl.Instance.UiSystem.Add(
+                "TinyLouvreViewWindows",
+                new PaintViewingWindow(painting.EncodedPainting ?? LouvreUtil.GarbageDataForFun(),
+                    painting.Author ?? "MISSINGNO", painting.Link ?? "")
+            );
+            root.SetPauseGame();
+        }
         
-        var root = GameImpl.Instance.UiSystem.Add(
-            "TinyLouvreViewWindows", 
-            new PaintViewingWindow(painting.EncodedPainting ?? LouvreUtil.GarbageDataForFun(), painting.Author ?? "MISSINGNO", painting.Link ?? "")
-        );
-        root.SetPauseGame();
+        var museumPainting = Info.GetActionObject<MuseumArtPiece>();
+        if (museumPainting != null)
+        {
+            var art = Museum.Paintings[museumPainting.MuseumIndex];
+            var root = GameImpl.Instance.UiSystem.Add(
+                "TinyLouvreViewWindows",
+                new PaintViewingWindow(art.Painting.Export() ?? LouvreUtil.GarbageDataForFun(),
+                    art.Author ?? "MISSINGNO", art.Link ?? "", true)
+            );
+            root.SetPauseGame();
+        }
     }
 }

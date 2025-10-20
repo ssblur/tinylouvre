@@ -15,12 +15,12 @@ public class ColorPickerWindow : CoveringGroup
 {
     private readonly SaturationValueField _saturationValueField;
     private readonly HueSlider _hueSlider;
-    private readonly byte _color;
+
     public ColorPickerWindow(byte color)
     {
         var picker = this;
-        _color = color;
-        var colorValue = Color.FromNonPremultiplied(LouvreUtil.IntToVector4(PaintingArea.Colors[_color]));
+        var color1 = color;
+        var colorValue = Color.FromNonPremultiplied(LouvreUtil.IntToVector4(PaintingArea.Colors[color1]));
         
         var root = new Panel(Anchor.Center, new Vector2(200, 150));
         AddChild(root);
@@ -30,6 +30,7 @@ public class ColorPickerWindow : CoveringGroup
         var group = new Group(Anchor.CenterRight, new Vector2(40, 130), false, false);
         root.AddChild(group);
 
+        
         group.AddChild(new Paragraph(Anchor.AutoLeft, 40, "Old:"));
         group.AddChild(new Panel(Anchor.AutoLeft, new Vector2(20, 20))
         {
@@ -57,7 +58,7 @@ public class ColorPickerWindow : CoveringGroup
             saturation = s;
             value = v;
 
-            PaintingArea.Colors[_color] = LouvreUtil.ColorToInt(ColorHelper.FromHsv(hue / 255f, saturation / 255f, value / 255f));;
+            PaintingArea.Colors[color1] = LouvreUtil.ColorToInt(ColorHelper.FromHsv(hue / 255f, saturation / 255f, value / 255f));;
             
             PaintingArea.UpdateCanvas();
             newColor.DrawColor = ColorHelper.FromHsv(hue / 255f, saturation / 255f, value / 255f);

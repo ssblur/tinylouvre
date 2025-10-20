@@ -30,8 +30,26 @@ off 0 128
 
 TinyLouvre.PaintingUp
 loc 0 0 32 32
-off 0 192
+off 0 256
 
 TinyLouvre.PaintingLeft
 loc 0 0 32 32
+off 0 256
+
+TinyLouvre.MuseumPaintingRight
+loc 0 0 32 32
+piv 24 32
 off 0 192
+
+TinyLouvre.MuseumPaintingDown
+loc 0 0 32 32
+piv 8 32
+off 0 224
+
+TinyLouvre.MuseumPaintingUp
+loc 0 0 32 32
+off 0 256
+
+TinyLouvre.MuseumPaintingLeft
+loc 0 0 32 32
+off 0 256

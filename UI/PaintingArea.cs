@@ -14,7 +14,7 @@ public class PaintingArea : Element
     private static Painting _painting;
     private static Texture2D _canvasTexture;
     private static byte _activeColor = 1;
-    public static int[] Colors = [0xffffff, 0x000000, 0x992600, 0x222a99];
+    public static readonly int[] Colors = [0xffffff, 0x000000, 0x992600, 0x222a99];
     
     public PaintingArea(Anchor anchor, Vector2 size) : base(anchor, size)
     {

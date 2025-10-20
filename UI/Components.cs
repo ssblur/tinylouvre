@@ -2,28 +2,19 @@ using System;
 using Microsoft.Xna.Framework;
 using MLEM.Maths;
 using MLEM.Misc;
-using MLEM.Startup;
 using MLEM.Ui;
 using MLEM.Ui.Elements;
 using TextCopy;
 using TinyLife;
 
-namespace TinyLouvre.UI.Components;
+namespace TinyLouvre.UI;
 
-class SaveButton : Button
-{
-    public SaveButton(Anchor anchor, Vector2 size) : base(anchor, size)
-    {
-    }
-
-    public SaveButton(Anchor anchor, Vector2 size, string text = null, string tooltipText = null) : base(anchor, size, text, tooltipText)
-    {
-    }
-
-    public SaveButton(Anchor anchor, Vector2 size, Paragraph.TextCallback textCallback = null, Paragraph.TextCallback tooltipTextCallback = null) : base(anchor, size, textCallback, tooltipTextCallback)
-    {
-    }
-}
+class SaveButton(
+    Anchor anchor,
+    Vector2 size,
+    Paragraph.TextCallback textCallback = null,
+    Paragraph.TextCallback tooltipTextCallback = null)
+    : Button(anchor, size, textCallback, tooltipTextCallback);
 
 class ShareButton : Button
 {
@@ -65,6 +56,7 @@ class ClearButton : Button
         var image = new Image(Anchor.Center, new Vector2(14, 14), TinyLouvre.UiTextures[new Point(3, 0)], true) {
             Padding = new Padding(3, 3)
         };
+        // ReSharper disable once VirtualMemberCallInConstructor
         AddChild(image);
         
         OnPressed += element =>
@@ -74,3 +66,6 @@ class ClearButton : Button
     }
     
 }
+
+class BuyButton(Anchor anchor, Vector2 size) : Button(anchor, size,
+    _ => Localization.Get(LnCategory.Ui, "TinyLouvre.Buy", TinyLouvre.Options.PaintingCost));

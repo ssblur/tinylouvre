@@ -17,13 +17,24 @@
         "TinyLouvre.OnlineModeDisclaimer.2": "These paintings are not moderated, and their content may not be suitable for all players.",
         "TinyLouvre.OnlineModeDisclaimer.3": "Would you like to enable Tiny Louvre's Online Mode?",
         "TinyLouvre.OnlineModeDisclaimer.4": "(This can be changed later in the mod's options menu)",
-
+        
+        "TinyLouvre.Enable": "Enable",
+        "TinyLouvre.Disable": "Disable",
         "TinyLouvre.Done": "Done",
         "TinyLouvre.Finish": "Finish (${0})",
         "TinyLouvre.Share": "Share",
+        "TinyLouvre.By": "By {0}",
+        "TinyLouvre.Buy": "Buy: ${0}",
+        "TinyLouvre.Delivered": "A copy of this work has been delivered to your household's storage. Thank you for your patronage!",
+        
+        "TinyLouvre.MapDescription": "The Tiny Louvre is a museum filled with art from across the world!\nCheck out others' creations or make art yourself!",
 
         "TinyLouvre.Options.OnlineMode": "Online Mode:",
         "TinyLouvre.Options.ATProtoLink": "Online Mode ATProto Feed Link:",
         "TinyLouvre.Options.PaintingPrice": "Painting Price:"
+    },
+    "Names": {
+        "TinyLouvre": "The Tiny Louvre",
+        "The Tiny Louvre": "The Tiny Louvre"
     }
 }
