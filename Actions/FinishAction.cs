@@ -32,7 +32,7 @@ public class FinishAction(ActionType type, ActionInfo info) : MultiAction(type, 
         artPiece.SetPaintingData(PaintingArea.GetExport(), Person.FullName, "");
         PaintingArea.ClearCanvas();
             
-        Person.Household.FurnitureStorage.Add(artPiece);
+        Person.Household.AddToFurnitureStorage(artPiece);
     }
 
     protected override CompletionType AndThenIsCompleted()
