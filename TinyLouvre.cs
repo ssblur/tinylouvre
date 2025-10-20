@@ -123,7 +123,7 @@ public class TinyLouvre : Mod {
                 "TinyLouvre.Painting", 
                 new Point(1, 1), 
                 artPieceCategory, 
-                -1, 
+                0, 
                 ColorScheme.White
             ) {
             ConstructedType = typeof(ArtPiece),
@@ -135,7 +135,7 @@ public class TinyLouvre : Mod {
                 "TinyLouvre.MuseumPainting", 
                 new Point(1, 1), 
                 artPieceCategory, 
-                -1, 
+                0, 
                 ColorScheme.White
             ) {
                 ConstructedType = typeof(MuseumArtPiece),
