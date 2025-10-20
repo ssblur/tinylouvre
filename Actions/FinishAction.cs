@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using TinyLife;
 using TinyLife.Actions;
 using TinyLife.Objects;
+using TinyLife.Uis;
 using TinyLife.Utilities;
 using TinyLouvre.Objects;
 using TinyLouvre.UI;
@@ -33,6 +34,7 @@ public class FinishAction(ActionType type, ActionInfo info) : MultiAction(type, 
         PaintingArea.ClearCanvas();
             
         Person.Household.AddToFurnitureStorage(artPiece);
+        Notifications.Add(Notifications.MailIcon, Localization.Get(LnCategory.Ui, "TinyLouvre.Finished"));
     }
 
     protected override CompletionType AndThenIsCompleted()
