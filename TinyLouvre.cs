@@ -433,6 +433,13 @@ public static partial class OnlineMode
     private record FeedItem(Post post);
     private record Feed(FeedItem[] feed);
 
+    static string atToBsky(string uri)
+    {
+        var regex = new Regex("^at:\\/\\/([^/]+)\\/[^/]+\\/([^/]+)$");
+        var match = regex.Match(uri);
+        return match.Groups.Count < 3 ? uri : $"https://bsky.app/profile/{match.Groups[1]}/post/{match.Groups[2]}";
+    }
+
     public static async void Update()
     {
         try
@@ -476,7 +483,7 @@ public static partial class OnlineMode
                     var authorHandle = item.post.author.handle;
                     var uri = item.post.uri;
 
-                    recentPaintings.Add(new PaintingWithMetadata(painting, authorName, authorHandle, uri));
+                    recentPaintings.Add(new PaintingWithMetadata(painting, authorName, authorHandle, atToBsky(uri)));
                 }
                 catch (Exception e)
                 {
