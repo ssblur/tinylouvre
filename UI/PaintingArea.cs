@@ -68,7 +68,7 @@ public class PaintingArea : Element
 
     public static string GetLink()
     {
-        return $"{Link}{Uri.EscapeDataString(Message)}tlv.{_painting.Export()}.";
+        return $"{Link}{Uri.EscapeDataString(Message)}tlv.{Uri.EscapeDataString(_painting.Export())}.";
     }
 
     public static string GetExport()
