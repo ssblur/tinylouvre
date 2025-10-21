@@ -1,6 +1,7 @@
 using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using MLEM.Graphics;
 using MLEM.Textures;
 using MLEM.Ui;
@@ -25,24 +26,32 @@ public class PaintingArea : Element
 
         _canvasTexture ??= new Texture2D(GameImpl.Instance.GraphicsDevice, Painting.SIZE_X, Painting.SIZE_Y);
         _painting.SetCanvasTexture(_canvasTexture);
-
-        OnPressed += element =>
-        {
-            var diff = element.Controls.Input.MousePosition.ToVector2() - element.DisplayArea.Location;
-            var scale = diff / element.DisplayArea.Size;
-            var pos = scale * new Vector2(Painting.SIZE_X, Painting.SIZE_Y);
-            pos.Floor();
-            _painting.Canvas[(int) pos.X, (int) pos.Y] = _activeColor;
-            UpdateCanvas();
-        };
     }
 
     public override bool CanBePressed => true;
+
+    private void PaintAtMouse()
+    {
+        var diff = Controls.Input.MousePosition.ToVector2() - DisplayArea.Location;
+        var scale = diff / DisplayArea.Size;
+        var pos = scale * new Vector2(Painting.SIZE_X, Painting.SIZE_Y);
+        pos.Floor();
+        if (pos.X is < 0 or >= Painting.SIZE_X) return;
+        if (pos.Y is < 0 or >= Painting.SIZE_Y) return;
+        _painting.Canvas[(int) pos.X, (int) pos.Y] = _activeColor;
+        UpdateCanvas();
+        
+    }
 
     public override void Draw(GameTime time, SpriteBatch batch, float alpha, SpriteBatchContext context)
     {
         base.Draw(time, batch, alpha, context);
         batch.Draw(_canvasTexture, DisplayArea, Color.White);
+
+        if (Controls.Input.MouseState.LeftButton == ButtonState.Pressed)
+        {
+            PaintAtMouse();
+        }
     }
 
     public static void SetColor(byte color)
