@@ -477,11 +477,12 @@ public static partial class OnlineMode
                     var post = item.post.record.text;
                     var groups = pattern.Match(post).Groups;
                     if (groups.Count < 2) continue;
-                    var painting = LouvreUtil.ImportPainting(groups[1].Value);
+                    var painting = LouvreUtil.ImportPainting(groups[1].Value.Replace(' ', '+'));
 
                     var authorName = item.post.author.displayName;
                     var authorHandle = item.post.author.handle;
                     var uri = item.post.uri;
+                    
 
                     recentPaintings.Add(new PaintingWithMetadata(painting, authorName, authorHandle, atToBsky(uri)));
                 }
