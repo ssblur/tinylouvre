@@ -10,6 +10,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MLEM.Data;
 using MLEM.Data.Content;
+using MLEM.Maths;
 using MLEM.Textures;
 using MLEM.Ui;
 using MLEM.Ui.Elements;
@@ -128,6 +129,7 @@ public class TinyLouvre : Mod {
             ) {
             ConstructedType = typeof(ArtPiece),
             Icon = Icon,
+            DefaultRotation = Direction2.Down
         });
 
         MuseumArtPiece = FurnitureType.Register(
@@ -153,7 +155,8 @@ public class TinyLouvre : Mod {
                     var i = 0;
                     if (furniture is MuseumArtPiece art) i = art.MuseumIndex;
                     return Localization.Get(LnCategory.BuildMode, "TinyLouvre.MuseumPainting", i);
-                })
+                }),
+                DefaultRotation = Direction2.Down
             });
         
         ActionType.Register(new ActionType.TypeSettings("TinyLouvre.Paint", ObjectCategory.Table, typeof(PaintAction)) {

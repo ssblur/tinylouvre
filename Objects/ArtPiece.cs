@@ -47,7 +47,7 @@ public class ArtPiece(Guid id, FurnitureType type, int[] colors, Map map, Vector
         
         var tex = _textureRegions[0];
         var ox = -3;
-        const int oy = 29;
+        var oy = 29;
         // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
         switch (rotation)
         {
@@ -60,6 +60,12 @@ public class ArtPiece(Guid id, FurnitureType type, int[] colors, Map map, Vector
             default: return;
         }
 
+        if (!pivot)
+        {
+            oy = (int) Math.Round(-4 * drawScale);
+            ox = (int) Math.Round(-11 * drawScale);
+        }
+
         DrawColumns(
             Map,
             pos,
@@ -69,9 +75,9 @@ public class ArtPiece(Guid id, FurnitureType type, int[] colors, Map map, Vector
             tex,
             overrideColor ?? Color.White,
             new Vector2(drawScale),
-            TinyLouvre.Instance.MuseumArtPiece.GetSize(rotation),
+            TinyLouvre.Instance.ArtPiece.GetSize(rotation),
             items,
-            false,
+            pivot,
             parent,
             depthOffset + 0.01f,
             SpriteEffects.None
