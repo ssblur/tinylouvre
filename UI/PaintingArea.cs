@@ -7,6 +7,7 @@ using MLEM.Textures;
 using MLEM.Ui;
 using MLEM.Ui.Elements;
 using TinyLife;
+using TinyLife.Utilities;
 
 namespace TinyLouvre.UI;
 
@@ -48,7 +49,7 @@ public class PaintingArea : Element
         base.Draw(time, batch, alpha, context);
         batch.Draw(_canvasTexture, DisplayArea, Color.White);
 
-        if (Controls.Input.MouseState.LeftButton == ButtonState.Pressed)
+        if (Controls.Input.MouseState.LeftButton == ButtonState.Pressed && this.IsActiveRoot())
         {
             PaintAtMouse();
         }
