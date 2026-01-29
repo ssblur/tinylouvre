@@ -44,7 +44,7 @@ public class TinyLouvre : Mod {
     public override TextureRegion Icon => UiTextures[new Point(0, 0)];
     public override string IssueTrackerUrl => "https://github.com/ssblur/tinylouvre/issues";
     public override string WebsiteUrl => "https://ssblur.com/mods/tinylouvre.html";
-    public override string TestedVersionRange => "[0.47.8,0.49.0]";
+    public override string TestedVersionRange => "[0.47.8,0.49.1]";
 
     public static Dictionary<Point, TextureRegion> UiTextures;
     
